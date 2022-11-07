@@ -20,16 +20,20 @@
 package com.wepay.kafka.connect.bigquery.convert;
 
 import com.google.cloud.bigquery.InsertAllRequest.RowToInsert;
+import com.google.gson.Gson;
 import com.wepay.kafka.connect.bigquery.api.KafkaSchemaRecordType;
 import com.wepay.kafka.connect.bigquery.convert.logicaltype.DebeziumLogicalConverters;
 import com.wepay.kafka.connect.bigquery.convert.logicaltype.KafkaLogicalConverters;
 import com.wepay.kafka.connect.bigquery.convert.logicaltype.LogicalConverterRegistry;
 import com.wepay.kafka.connect.bigquery.convert.logicaltype.LogicalTypeConverter;
 import com.wepay.kafka.connect.bigquery.exception.ConversionConnectException;
+import com.wepay.kafka.connect.bigquery.utils.SinkRecordConverter;
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.sink.SinkRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -48,6 +52,9 @@ import java.util.stream.Collectors;
  */
 public class BigQueryRecordConverter implements RecordConverter<Map<String, Object>> {
 
+  private static final Logger logger = LoggerFactory.getLogger(BigQueryRecordConverter.class);
+
+  private static     Gson gson = new Gson();
   private static final Set<Class<?>> BASIC_TYPES = new HashSet<>(
           Arrays.asList(
             Boolean.class, Character.class, Byte.class, Short.class,
@@ -88,6 +95,16 @@ public class BigQueryRecordConverter implements RecordConverter<Map<String, Obje
       throw new
           ConversionConnectException("Top-level Kafka Connect schema must be of type 'struct'");
     }
+    logger.info("recordType == KafkaSchemaRecordType.KEY ? record.keySchema() : record.valueSchema()" + (recordType == KafkaSchemaRecordType.KEY ));
+    logger.info("recordType == KafkaSchemaRecordType.KEY ? record.key() : record.value()");
+    logger.info("kafkaConnectSchema");
+    logger.info("kafkaConnectStruct");
+
+    String kafkaConnectSchemajson = gson.toJson(kafkaConnectSchema);
+    String kafkaConnectStructjson = gson.toJson(kafkaConnectStruct);
+    logger.info(kafkaConnectSchemajson);
+    logger.info(kafkaConnectStructjson);
+    logger.info("convertRecord -> convertStruct");
     return convertStruct(kafkaConnectStruct, kafkaConnectSchema);
   }
 
