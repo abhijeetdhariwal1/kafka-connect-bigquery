@@ -21,6 +21,7 @@ package com.wepay.kafka.connect.bigquery.utils;
 
 import com.google.cloud.bigquery.InsertAllRequest;
 import com.google.cloud.bigquery.TableId;
+import com.google.gson.Gson;
 import com.wepay.kafka.connect.bigquery.MergeQueries;
 import com.wepay.kafka.connect.bigquery.api.KafkaSchemaRecordType;
 import com.wepay.kafka.connect.bigquery.config.BigQuerySinkTaskConfig;
@@ -62,20 +63,21 @@ public class SinkRecordConverter {
         this.recordConverter = config.getRecordConverter();
         this.mergeRecordsThreshold = config.getLong(config.MERGE_RECORDS_THRESHOLD_CONFIG);
         this.useMessageTimeDatePartitioning =
-            config.getBoolean(config.BIGQUERY_MESSAGE_TIME_PARTITIONING_CONFIG);
+                config.getBoolean(config.BIGQUERY_MESSAGE_TIME_PARTITIONING_CONFIG);
         this.usePartitionDecorator =
-            config.getBoolean(config.BIGQUERY_PARTITION_DECORATOR_CONFIG);
+                config.getBoolean(config.BIGQUERY_PARTITION_DECORATOR_CONFIG);
 
     }
 
     public InsertAllRequest.RowToInsert getRecordRow(SinkRecord record, TableId table) {
+        logger.info("config.isUpsertDeleteEnabled():" + config.isUpsertDeleteEnabled());
         Map<String, Object> convertedRecord = config.isUpsertDeleteEnabled()
-            ? getUpsertDeleteRow(record, table)
-            : getRegularRow(record);
+                ? getUpsertDeleteRow(record, table)
+                : getRegularRow(record);
 
         Map<String, Object> result = config.getBoolean(config.SANITIZE_FIELD_NAME_CONFIG)
-            ? FieldNameSanitizer.replaceInvalidKeys(convertedRecord)
-            : convertedRecord;
+                ? FieldNameSanitizer.replaceInvalidKeys(convertedRecord)
+                : convertedRecord;
 
         return InsertAllRequest.RowToInsert.of(getRowId(record), result);
     }
@@ -83,12 +85,12 @@ public class SinkRecordConverter {
     private Map<String, Object> getUpsertDeleteRow(SinkRecord record, TableId table) {
         // Unconditionally allow tombstone records if delete is enabled.
         Map<String, Object> convertedValue = config.getBoolean(config.DELETE_ENABLED_CONFIG) && record.value() == null
-            ? null
-            : recordConverter.convertRecord(record, KafkaSchemaRecordType.VALUE);
+                ? null
+                : recordConverter.convertRecord(record, KafkaSchemaRecordType.VALUE);
 
         if (convertedValue != null) {
             config.getKafkaDataFieldName().ifPresent(
-                fieldName -> convertedValue.put(fieldName, KafkaDataBuilder.buildKafkaDataRecord(record))
+                    fieldName -> convertedValue.put(fieldName, KafkaDataBuilder.buildKafkaDataRecord(record))
             );
         }
 
@@ -96,8 +98,8 @@ public class SinkRecordConverter {
         long totalBatchSize = mergeBatches.addToBatch(record, table, result);
         if (mergeRecordsThreshold != -1 && totalBatchSize >= mergeRecordsThreshold) {
             logger.debug("Triggering merge flush for table {} since the size of its current batch has "
-                    + "exceeded the configured threshold of {}}",
-                table, mergeRecordsThreshold);
+                            + "exceeded the configured threshold of {}}",
+                    table, mergeRecordsThreshold);
             mergeQueries.mergeFlush(table);
         }
 
@@ -112,7 +114,7 @@ public class SinkRecordConverter {
         if (usePartitionDecorator && useMessageTimeDatePartitioning) {
             if (record.timestampType() == TimestampType.NO_TIMESTAMP_TYPE) {
                 throw new ConnectException(
-                    "Message has no timestamp type, cannot use message timestamp to partition.");
+                        "Message has no timestamp type, cannot use message timestamp to partition.");
             }
             result.put(MergeQueries.INTERMEDIATE_TABLE_PARTITION_TIME_FIELD_NAME, record.timestamp());
         } else {
@@ -128,21 +130,26 @@ public class SinkRecordConverter {
         Map<String, Object> result = recordConverter.convertRecord(record, KafkaSchemaRecordType.VALUE);
 
         config.getKafkaDataFieldName().ifPresent(
-            fieldName -> result.put(fieldName, KafkaDataBuilder.buildKafkaDataRecord(record))
+                fieldName -> result.put(fieldName, KafkaDataBuilder.buildKafkaDataRecord(record))
         );
 
         config.getKafkaKeyFieldName().ifPresent(fieldName -> {
             Map<String, Object> keyData = recordConverter.convertRecord(record, KafkaSchemaRecordType.KEY);
             result.put(fieldName, keyData);
         });
+//        result.remove("source");
+        Gson gson = new Gson();
+        String jsonResult = gson.toJson(result);
+        logger.info("jsonResult");
+        logger.info(jsonResult);
 
         return result;
     }
 
     private String getRowId(SinkRecord record) {
         return String.format("%s-%d-%d",
-            record.topic(),
-            record.kafkaPartition(),
-            record.kafkaOffset());
+                record.topic(),
+                record.kafkaPartition(),
+                record.kafkaOffset());
     }
 }
