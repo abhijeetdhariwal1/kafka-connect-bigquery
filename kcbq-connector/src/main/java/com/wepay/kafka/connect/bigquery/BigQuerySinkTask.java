@@ -36,6 +36,7 @@ import com.wepay.kafka.connect.bigquery.api.SchemaRetriever;
 import com.wepay.kafka.connect.bigquery.config.BigQuerySinkConfig;
 import com.wepay.kafka.connect.bigquery.config.BigQuerySinkTaskConfig;
 import com.wepay.kafka.connect.bigquery.convert.SchemaConverter;
+import com.wepay.kafka.connect.bigquery.debezium.MySQLSinkRecords;
 import com.wepay.kafka.connect.bigquery.utils.FieldNameSanitizer;
 import com.wepay.kafka.connect.bigquery.utils.PartitionedTableId;
 import com.wepay.kafka.connect.bigquery.utils.SinkRecordConverter;
@@ -261,6 +262,8 @@ public class BigQuerySinkTask extends SinkTask {
 //    logger.info("Hi");
 
     for (SinkRecord record : records) {
+//      MySQLSinkRecords mySQLSinkRecord = new MySQLSinkRecords();
+//      mySQLSinkRecord.modifySinkRecord(record);
 //      logger.info("recevalue  *****" + record.key() + " -- " + record.value() );
       if (record.value() != null || config.getBoolean(BigQuerySinkConfig.DELETE_ENABLED_CONFIG)) {
         PartitionedTableId table = getRecordTable(record);
@@ -423,6 +426,7 @@ public class BigQuerySinkTask extends SinkTask {
 
   private BigQueryWriter getBigQueryWriter() {
     boolean autoCreateTables = config.getBoolean(BigQuerySinkConfig.TABLE_CREATE_CONFIG);
+    logger.info("autocreate" + autoCreateTables);
     boolean allowNewBigQueryFields = config.getBoolean(BigQuerySinkConfig.ALLOW_NEW_BIGQUERY_FIELDS_CONFIG);
     boolean allowRequiredFieldRelaxation = config.getBoolean(BigQuerySinkConfig.ALLOW_BIGQUERY_REQUIRED_FIELD_RELAXATION_CONFIG);
     int retry = config.getInt(BigQuerySinkConfig.BIGQUERY_RETRY_CONFIG);
@@ -650,4 +654,5 @@ public class BigQuerySinkTask extends SinkTask {
       context.resume(assignment.toArray(new TopicPartition[assignment.size()]));
     }
   }
+
 }

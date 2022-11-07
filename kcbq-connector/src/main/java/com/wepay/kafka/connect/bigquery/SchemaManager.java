@@ -54,6 +54,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.base.Preconditions.checkState;
+import com.google.cloud.bigquery.*;
 
 /**
  * Class for managing Schemas of BigQuery tables (creating and updating).
@@ -344,6 +345,21 @@ public class SchemaManager {
       }
     }
 
+    FieldList fieldList= result.getFields();
+    System.out.println(fieldList);
+    System.out.println(fieldList.getIndex("before"));
+    fieldList.forEach(
+            (field)  ->{
+              System.out.println(
+                      field.getName() + " - "
+                      + field.getType() + " - "
+                      + field.getMode() + " - "
+                      + field.getPolicyTags()
+              );
+            }
+    );
+
+//    FieldList fieldList2 =
     Gson gson = new Gson();
     String jsonResult = gson.toJson(result);
     logger.info("result is ");
@@ -600,6 +616,7 @@ public class SchemaManager {
     });
     return result;
   }
+
 
   // package private for testing.
   TableInfo constructTableInfo(TableId table, com.google.cloud.bigquery.Schema bigQuerySchema, String tableDescription,
