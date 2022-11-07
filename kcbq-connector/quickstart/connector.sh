@@ -20,16 +20,18 @@
 
 BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-if [ -z $CONFLUENT_DIR ]; then
-  CONFLUENT_DIR="$BASE_DIR/../../confluent-3.0.0"
-fi
+#if [ -z $CONFLUENT_DIR ]; then
+#  CONFLUENT_DIR="$BASE_DIR/../../confluent-3.0.0"
+#fi
 
 export CLASSPATH="$CLASSPATH:$BASE_DIR/../../bin/jar/*"
 
 STANDALONE_PROPS="$BASE_DIR/properties/standalone.properties"
 CONNECTOR_PROPS="$BASE_DIR/properties/connector.properties"
 
-exec "$CONFLUENT_DIR/bin/connect-standalone" "$STANDALONE_PROPS" "$CONNECTOR_PROPS"
+#exec "$CONFLUENT_DIR/bin/connect-standalone" "$STANDALONE_PROPS" "$CONNECTOR_PROPS"
 
 # RIGHT WAY
 # examine dependencies, see who's pulling in what
+
+exec "/Users/abhijeet.dhariwal/Documents/abhijeet/FKH+/tools/kafka/kafkainstallationlocal/kafka_2.13-3.3.1/bin/connect-standalone.sh" "$STANDALONE_PROPS" "$CONNECTOR_PROPS"
