@@ -109,7 +109,7 @@ public abstract class BigQueryWriter {
         waitRandomTime();
       }
       try {
-        failedRowsMap = performWriteRequest(table, rows);
+        failedRowsMap = performWriteRequest2(table, rows);
         if (failedRowsMap.isEmpty()) {
           // table insertion completed with no reported errors
           return;
@@ -147,6 +147,12 @@ public abstract class BigQueryWriter {
         String.format("Exceeded configured %d attempts for write request", retries),
         mostRecentException);
   }
+
+
+  protected abstract Map<Long, List<BigQueryError>> performWriteRequest2(
+          PartitionedTableId tableId,
+          SortedMap<SinkRecord, InsertAllRequest.RowToInsert> rows)
+          throws BigQueryException, BigQueryConnectException;
 
   /**
    * Decide whether the failure is a partial failure or complete failure

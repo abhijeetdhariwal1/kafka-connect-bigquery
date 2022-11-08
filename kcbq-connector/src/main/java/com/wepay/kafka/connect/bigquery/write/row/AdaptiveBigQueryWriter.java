@@ -19,12 +19,7 @@
 
 package com.wepay.kafka.connect.bigquery.write.row;
 
-import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.TableId;
-import com.google.cloud.bigquery.BigQueryError;
-import com.google.cloud.bigquery.BigQueryException;
-import com.google.cloud.bigquery.InsertAllRequest;
-import com.google.cloud.bigquery.InsertAllResponse;
+import com.google.cloud.bigquery.*;
 
 import com.wepay.kafka.connect.bigquery.SchemaManager;
 import com.wepay.kafka.connect.bigquery.exception.BigQueryConnectException;
@@ -105,6 +100,8 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
       } else {
         throw exception;
       }
+
+      throw exception;
     }
 
     // Creating tables or updating table schemas in BigQuery takes up to 2~3 minutes to take affect,
@@ -193,5 +190,83 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
     }
     // if we only saw "stopped" errors, we want to return false. (otherwise, return true)
     return invalidSchemaError;
+  }
+
+
+  public Map<Long, List<BigQueryError>> performWriteRequest2(
+          PartitionedTableId tableId,
+          SortedMap<SinkRecord, InsertAllRequest.RowToInsert> rows) {
+    InsertAllResponse writeResponse = null;
+    InsertAllRequest request = null;
+
+    try {
+      request = createInsertAllRequest(tableId, rows.values());
+      Schema schema =
+              Schema.of(
+                      Field.of("stringField", StandardSQLTypeName.STRING),
+                      Field.of("booleanField", StandardSQLTypeName.BOOL));
+      TableId myTableId = TableId.of("testdataset1", "testtable6");
+      TableDefinition tableDefinition = StandardTableDefinition.of(schema);
+      TableInfo tableInfo =
+              TableInfo.newBuilder(myTableId, tableDefinition)
+                      .build();
+      bigQuery.create(tableInfo);
+//      writeResponse = bigQuery.insertAll(request);
+      // Should only perform one schema update attempt.
+//      if (writeResponse.hasErrors()
+//              && onlyContainsInvalidSchemaErrors(writeResponse.getInsertErrors())) {
+//        attemptSchemaUpdate(tableId, new ArrayList<>(rows.keySet()));
+//      }
+    } catch (BigQueryException exception) {
+      // Should only perform one table creation attempt.
+//      if (BigQueryErrorResponses.isNonExistentTableError(exception) && autoCreateTables) {
+//        attemptTableCreate(tableId.getBaseTableId(), new ArrayList<>(rows.keySet()));
+//      } else if (BigQueryErrorResponses.isTableMissingSchemaError(exception)) {
+//        attemptSchemaUpdate(tableId, new ArrayList<>(rows.keySet()));
+//      } else {
+//        throw exception;
+//      }
+
+      throw exception;
+    }
+
+    // Creating tables or updating table schemas in BigQuery takes up to 2~3 minutes to take affect,
+    // so multiple insertion attempts may be necessary.
+//    int attemptCount = 0;
+//    while (writeResponse == null || writeResponse.hasErrors()) {
+//      logger.trace("insertion failed");
+//      if (writeResponse == null
+//              || onlyContainsInvalidSchemaErrors(writeResponse.getInsertErrors())) {
+//        try {
+//          // If the table was missing its schema, we never received a writeResponse
+//          logger.debug("re-attempting insertion");
+//          writeResponse = bigQuery.insertAll(request);
+//        } catch (BigQueryException exception) {
+//          if ((BigQueryErrorResponses.isNonExistentTableError(exception) && autoCreateTables)
+//                  || BigQueryErrorResponses.isTableMissingSchemaError(exception)
+//          ) {
+//            // no-op, we want to keep retrying the insert
+//            logger.debug("insertion failed", exception);
+//          } else {
+//            throw exception;
+//          }
+//        }
+//      } else {
+//        return writeResponse.getInsertErrors();
+//      }
+//      attemptCount++;
+//      if (attemptCount >= RETRY_LIMIT) {
+//        throw new BigQueryConnectException(
+//                "Failed to write rows after BQ table creation or schema update within "
+//                        + RETRY_LIMIT + " attempts for: " + tableId.getBaseTableId());
+//      }
+//      try {
+//        Thread.sleep(RETRY_WAIT_TIME);
+//      } catch (InterruptedException e) {
+//        throw new ExpectedInterruptException("Interrupted while waiting to retry write");
+//      }
+//    }
+//    logger.debug("table insertion completed successfully");
+    return new HashMap<>();
   }
 }

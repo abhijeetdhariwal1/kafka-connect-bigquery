@@ -19,12 +19,10 @@
 
 package com.wepay.kafka.connect.bigquery.write.row;
 
-import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQueryError;
-import com.google.cloud.bigquery.InsertAllRequest;
-import com.google.cloud.bigquery.InsertAllResponse;
+import com.google.cloud.bigquery.*;
 
 import com.wepay.kafka.connect.bigquery.config.BigQuerySinkConfig;
+import com.wepay.kafka.connect.bigquery.exception.BigQueryConnectException;
 import com.wepay.kafka.connect.bigquery.utils.PartitionedTableId;
 
 import org.apache.kafka.connect.sink.SinkRecord;
@@ -76,5 +74,10 @@ public class SimpleBigQueryWriter extends BigQueryWriter {
       logger.debug("table insertion completed with no reported errors");
       return new HashMap<>();
     }
+  }
+
+  @Override
+  protected Map<Long, List<BigQueryError>> performWriteRequest2(PartitionedTableId tableId, SortedMap<SinkRecord, InsertAllRequest.RowToInsert> rows) throws BigQueryException, BigQueryConnectException {
+    return null;
   }
 }
