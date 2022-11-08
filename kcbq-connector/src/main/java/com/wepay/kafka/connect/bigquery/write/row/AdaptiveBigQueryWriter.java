@@ -24,6 +24,7 @@ import com.google.cloud.bigquery.*;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.wepay.kafka.connect.bigquery.SchemaManager;
+import com.wepay.kafka.connect.bigquery.api.KafkaSchemaRecordType;
 import com.wepay.kafka.connect.bigquery.exception.BigQueryConnectException;
 
 import com.wepay.kafka.connect.bigquery.exception.ExpectedInterruptException;
@@ -257,6 +258,8 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
       logger.info("response is ");
       logger.info(response.toString());
 
+
+      Map<String, Object> result = recordConverter.convertRecord(record, KafkaSchemaRecordType.VALUE);
 //      Gson gson = new Gson();
 //      String rowsmapJson= gson.toJson(rows);
 //      String rowContentJson = gson.toJson(rowContent1);

@@ -194,6 +194,7 @@ public class TableWriter implements Runnable {
 
     @Override
     public void addRow(SinkRecord record, TableId table) {
+      logger.info("addRow");
       rows.put(record, recordConverter.getRecordRow(record, table));
     }
 

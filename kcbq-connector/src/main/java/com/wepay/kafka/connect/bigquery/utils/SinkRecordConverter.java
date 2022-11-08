@@ -127,6 +127,7 @@ public class SinkRecordConverter {
     }
 
     private Map<String, Object> getRegularRow(SinkRecord record) {
+        logger.info("getRegularRow");
         Map<String, Object> result = recordConverter.convertRecord(record, KafkaSchemaRecordType.VALUE);
 
         config.getKafkaDataFieldName().ifPresent(
