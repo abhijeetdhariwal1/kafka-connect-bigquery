@@ -431,6 +431,8 @@ public class BigQuerySinkTask extends SinkTask {
     boolean allowNewBigQueryFields = config.getBoolean(BigQuerySinkConfig.ALLOW_NEW_BIGQUERY_FIELDS_CONFIG);
     boolean allowRequiredFieldRelaxation = config.getBoolean(BigQuerySinkConfig.ALLOW_BIGQUERY_REQUIRED_FIELD_RELAXATION_CONFIG);
     int retry = config.getInt(BigQuerySinkConfig.BIGQUERY_RETRY_CONFIG);
+    logger.info("retry in");
+    System.out.println(retry);
     long retryWait = config.getLong(BigQuerySinkConfig.BIGQUERY_RETRY_WAIT_CONFIG);
     BigQuery bigQuery = getBigQuery();
     if (upsertDelete) {

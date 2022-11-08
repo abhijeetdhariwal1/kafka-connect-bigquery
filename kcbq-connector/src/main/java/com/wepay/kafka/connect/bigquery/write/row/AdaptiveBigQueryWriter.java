@@ -23,13 +23,16 @@ import com.google.cloud.bigquery.*;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.wepay.kafka.connect.bigquery.SchemaManager;
-import com.wepay.kafka.connect.bigquery.api.KafkaSchemaRecordType;
 import com.wepay.kafka.connect.bigquery.exception.BigQueryConnectException;
 
 import com.wepay.kafka.connect.bigquery.exception.ExpectedInterruptException;
 import com.wepay.kafka.connect.bigquery.utils.PartitionedTableId;
 
+import netscape.javascript.JSObject;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -205,23 +208,25 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
     try {
 
       List<SinkRecord> sinkRecordList = new ArrayList<>(rows.keySet());
-      SinkRecord  sr1= sinkRecordList.get(0);
+//      SinkRecord  sr1= sinkRecordList.get(0);
       Gson gson = new Gson();
 //      String sr1json = gson.toJson(sr1);
       String sinkRecordListJson = gson.toJson(sinkRecordList);
 
-      logger.info("sinkRecordList");
-      logger.info(sinkRecordListJson);
+//      logger.info("sinkRecordList");
+//      logger.info(sinkRecordListJson);
 
 //      logger.info("sr1json");
 //      logger.info(sr1json);
+
+      parseMySQlSinkRecords(sinkRecordList);
       request = createInsertAllRequest(tableId, rows.values());
       Schema schema =
               Schema.of(
                       Field.of("stringField", StandardSQLTypeName.STRING),
                       Field.of("booleanField", StandardSQLTypeName.BOOL));
       String datasetName = "testdataset1";
-      String tableName =  "testtable6";
+      String tableName =  "testtable7";
       TableId myTableId = TableId.of(datasetName, tableName);
       TableDefinition tableDefinition = StandardTableDefinition.of(schema);
       TableInfo tableInfo =
@@ -259,7 +264,7 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
       logger.info(response.toString());
 
 
-      Map<String, Object> result = recordConverter.convertRecord(record, KafkaSchemaRecordType.VALUE);
+//      Map<String, Object> result =
 //      Gson gson = new Gson();
 //      String rowsmapJson= gson.toJson(rows);
 //      String rowContentJson = gson.toJson(rowContent1);
@@ -328,4 +333,74 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
 //    logger.debug("table insertion completed successfully");
     return new HashMap<>();
   }
+
+  private JsonArray parseMySQlSinkRecords(List<SinkRecord> sinkRecordList) {
+    for(SinkRecord sinkRecord : sinkRecordList){
+
+      try {
+//        Struct data = (Struct) sinkRecord.value();
+//        logger.info(data.toString());
+//        String val = String.valueOf(((Struct) data.get("after")).get("SourceInvId")).trim();
+//        val = (val.equals("null") || val.equals("")) ? "0" : val;
+        Gson gson = new Gson();
+        String  sinkRecordJson = gson.toJson(sinkRecord);
+        logger.info(sinkRecordJson);
+        JsonObject convertedObject = new Gson().fromJson(sinkRecordJson, JsonObject.class);
+        JsonObject valueObject = convertedObject.getAsJsonObject("value");
+        JsonObject schemaObject = valueObject.getAsJsonObject("schema");
+        System.out.println("__________________________________________________");
+
+        JsonArray fieldsValueObject = schemaObject.getAsJsonArray("fields");
+
+        JsonArray schemaFields = schemaObject.getAsJsonArray("fields");
+        JsonArray valuesObject = valueObject.getAsJsonArray("values");
+
+        logger.info("schemaFields");
+        System.out.println(schemaFields);
+
+
+
+        Map<JsonElement, JsonElement> map = new HashMap<>();
+        for(JsonElement field:  schemaFields){
+          JsonObject jsonObjectField = (JsonObject) field;
+          JsonElement fieldName = jsonObjectField.get("name");
+          JsonElement fieldIndex =jsonObjectField.get("index");
+          map.put(fieldName, fieldIndex);
+        }
+
+        logger.info("valuesObject");
+        System.out.println(valuesObject);
+
+        JsonArray tableColumnsMetaData= null;
+        JsonArray afterValues = null;
+        JsonElement operationType =valuesObject.get(3);
+
+        if(!operationType.getAsString().equalsIgnoreCase("d")){
+          System.out.println("yesss");
+          JsonObject  after = (JsonObject) valuesObject.get(1);
+          JsonObject  afterSchema  = after.getAsJsonObject("schema");
+          afterValues = after.getAsJsonArray("values");
+          tableColumnsMetaData = afterSchema.getAsJsonArray("fields");
+
+        }
+
+        for (JsonElement fieldMetadata :tableColumnsMetaData ){
+          JsonObject dataType  = fieldMetadata.getAsJsonObject().get("schema").getAsJsonObject();
+          System.out.println(dataType);
+          System.out.println("+++");
+        }
+
+
+        System.out.println("__________________________________________________");
+        return  afterValues;
+
+      } catch (Exception e) {
+        logger.info(e.toString());
+      }
+    }
+    return null;
+  }
+
+
+
 }
