@@ -28,6 +28,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.wepay.kafka.connect.bigquery.SchemaManager;
 import com.wepay.kafka.connect.bigquery.debezium.MySQLPayload;
+import com.wepay.kafka.connect.bigquery.debezium.MySQLTableData;
 import com.wepay.kafka.connect.bigquery.exception.BigQueryConnectException;
 
 import com.wepay.kafka.connect.bigquery.exception.ExpectedInterruptException;
@@ -266,6 +267,9 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
 //      logger.info(response.toString());
 
 //      List<insertAllRequest>
+      MySQLTableData after = (MySQLTableData) mySQLPayloadObj.getValues().get(1);
+      int x =after.getSchema();
+
       Map<String, Object> rowmap1= new HashMap<>();
       rowmap1.put("col1", 103);
       rowmap1.put("varchar_col", "x");
