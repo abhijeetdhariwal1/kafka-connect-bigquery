@@ -27,6 +27,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.wepay.kafka.connect.bigquery.SchemaManager;
+import com.wepay.kafka.connect.bigquery.debezium.MySQLPayload;
 import com.wepay.kafka.connect.bigquery.exception.BigQueryConnectException;
 
 import com.wepay.kafka.connect.bigquery.exception.ExpectedInterruptException;
@@ -219,7 +220,7 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
 //      logger.info("sr1json");
 //      logger.info(sr1json);
 
-      JsonArray records =parseMySQlSinkRecords(sinkRecordList);
+      MySQLPayload mySQLPayloadObj =parseMySQlSinkRecords(sinkRecordList);
       request = createInsertAllRequest(tableId, rows.values());
 
       Schema schema =
@@ -233,37 +234,40 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
       TableInfo tableInfo =
               TableInfo.newBuilder(myTableId, tableDefinition)
                       .build();
+
+      logger.info("printing MYSQL PAYLOAD");
+      System.out.println(mySQLPayloadObj);
 //      bigQuery.create(tableInfo);
 
-      logger.info("***********************");
-      int col1= records.get(0).getAsInt();
-      String varchar_col= records.get(1).getAsString();
-      System.out.println();
-      Map<String, Object> rowContent1 = new HashMap<>();
-      rowContent1.put("col1", col1);
-      rowContent1.put("varchar_col", varchar_col);
-//      Map<String, Object> rowContent2 = new HashMap<>();
-//      rowContent2.put("stringField", );
-//      rowContent2.put("booleanField", false);
-
-
-      InsertAllRequest insertAllRequest =InsertAllRequest.newBuilder(TableId.of(datasetName, tableName))
-              .setRows(
-
-                                                            ImmutableList.of(
-                                              InsertAllRequest.RowToInsert.of(rowContent1)
-//                                              ,InsertAllRequest.RowToInsert.of(rowContent2)
-                                                            )
-              )
-              .build();
-
-      InsertAllResponse response=  bigQuery.insertAll(insertAllRequest);
-      logger.info("response is ");
-      logger.info(response.toString());
+//      logger.info("***********************");
+////      int col1= records.get(0).getAsInt();
+////      String varchar_col= records.get(1).getAsString();
+//      System.out.println();
+//      Map<String, Object> rowContent1 = new HashMap<>();
+//      rowContent1.put("col1", 1);
+//      rowContent1.put("varchar_col", "abc");
+////      Map<String, Object> rowContent2 = new HashMap<>();
+////      rowContent2.put("stringField", );
+////      rowContent2.put("booleanField", false);
+//
+//
+//      InsertAllRequest insertAllRequest =InsertAllRequest.newBuilder(TableId.of(datasetName, tableName))
+//              .setRows(
+//
+//                                                            ImmutableList.of(
+//                                              InsertAllRequest.RowToInsert.of(rowContent1)
+////                                              ,InsertAllRequest.RowToInsert.of(rowContent2)
+//                                                            )
+//              )
+//              .build();
+//
+//      InsertAllResponse response=  bigQuery.insertAll(insertAllRequest);
+//      logger.info("response is ");
+//      logger.info(response.toString());
 
 
     } catch (BigQueryException exception) {
-
+      System.out.println("exception");
       throw exception;
     }
 
@@ -271,7 +275,7 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
     return new HashMap<>();
   }
 
-  private JsonArray parseMySQlSinkRecords(List<SinkRecord> sinkRecordList) {
+  private MySQLPayload parseMySQlSinkRecords(List<SinkRecord> sinkRecordList) {
     for(SinkRecord sinkRecord : sinkRecordList){
 
       try {
@@ -284,52 +288,63 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
         logger.info(sinkRecordJson);
         JsonObject convertedObject = new Gson().fromJson(sinkRecordJson, JsonObject.class);
         JsonObject valueObject = convertedObject.getAsJsonObject("value");
-        JsonObject schemaObject = valueObject.getAsJsonObject("schema");
-        System.out.println("__________________________________________________");
-
-        JsonArray fieldsValueObject = schemaObject.getAsJsonArray("fields");
-
-        JsonArray schemaFields = schemaObject.getAsJsonArray("fields");
-        JsonArray valuesObject = valueObject.getAsJsonArray("values");
-
-        logger.info("schemaFields");
-        System.out.println(schemaFields);
-
-
-
-        Map<JsonElement, JsonElement> map = new HashMap<>();
-        for(JsonElement field:  schemaFields){
-          JsonObject jsonObjectField = (JsonObject) field;
-          JsonElement fieldName = jsonObjectField.get("name");
-          JsonElement fieldIndex =jsonObjectField.get("index");
-          map.put(fieldName, fieldIndex);
-        }
-
-        logger.info("valuesObject");
-        System.out.println(valuesObject);
-
-        JsonArray tableColumnsMetaData= null;
-        JsonArray afterValues = null;
-        JsonElement operationType =valuesObject.get(3);
-
-        if(!operationType.getAsString().equalsIgnoreCase("d")){
-          System.out.println("yesss");
-          JsonObject  after = (JsonObject) valuesObject.get(1);
-          JsonObject  afterSchema  = after.getAsJsonObject("schema");
-          afterValues = after.getAsJsonArray("values");
-          tableColumnsMetaData = afterSchema.getAsJsonArray("fields");
-
-        }
-
-        for (JsonElement fieldMetadata :tableColumnsMetaData ){
-          JsonObject dataType  = fieldMetadata.getAsJsonObject().get("schema").getAsJsonObject();
-          System.out.println(dataType);
-          System.out.println("+++");
-        }
-
-
-        System.out.println("__________________________________________________");
-        return  afterValues;
+        MySQLPayload mySQLPayloadObj = gson.fromJson(valueObject.toString(), MySQLPayload.class);
+        return mySQLPayloadObj;
+//        logger.info("object payload printing");
+//        logger.info("printing the schema");
+//        logger.info("printing the schema again");
+//        logger.info("printing the schema again2");
+//        logger.info("printing the schema again3");
+//        logger.info(obj.toString());
+//        System.out.println(obj.getValues());
+//        System.out.println(obj.getSchema());
+//        System.out.println(obj.getValues().size());
+//        JsonObject schemaObject = valueObject.getAsJsonObject("schema");
+//        System.out.println("__________________________________________________");
+//
+//        JsonArray fieldsValueObject = schemaObject.getAsJsonArray("fields");
+//
+//        JsonArray schemaFields = schemaObject.getAsJsonArray("fields");
+//        JsonArray valuesObject = valueObject.getAsJsonArray("values");
+//
+//        logger.info("schemaFields");
+//        System.out.println(schemaFields);
+//
+//
+//
+//        Map<JsonElement, JsonElement> map = new HashMap<>();
+//        for(JsonElement field:  schemaFields){
+//          JsonObject jsonObjectField = (JsonObject) field;
+//          JsonElement fieldName = jsonObjectField.get("name");
+//          JsonElement fieldIndex =jsonObjectField.get("index");
+//          map.put(fieldName, fieldIndex);
+//        }
+//
+//        logger.info("valuesObject");
+//        System.out.println(valuesObject);
+//
+//        JsonArray tableColumnsMetaData= null;
+//        JsonArray afterValues = null;
+//        JsonElement operationType =valuesObject.get(3);
+//
+//        if(!operationType.getAsString().equalsIgnoreCase("d")){
+//          System.out.println("yesss");
+//          JsonObject  after = (JsonObject) valuesObject.get(1);
+//          JsonObject  afterSchema  = after.getAsJsonObject("schema");
+//          afterValues = after.getAsJsonArray("values");
+//          tableColumnsMetaData = afterSchema.getAsJsonArray("fields");
+//
+//        }
+//
+//        for (JsonElement fieldMetadata :tableColumnsMetaData ){
+//          JsonObject dataType  = fieldMetadata.getAsJsonObject().get("schema").getAsJsonObject();
+//          System.out.println(dataType);
+//          System.out.println("+++");
+//        }
+//
+//
+//        System.out.println("__________________________________________________");
+//        return  afterValues;
 
       } catch (Exception e) {
         logger.info(e.toString());
