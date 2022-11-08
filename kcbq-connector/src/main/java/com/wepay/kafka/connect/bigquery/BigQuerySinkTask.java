@@ -309,7 +309,7 @@ public class BigQuerySinkTask extends SinkTask {
 //      Struct recordValue = (Struct) record.value();
 //      RequestUtil.parse(record);
 
-      break;
+//      break;
     }
 
 //     add tableWriters to the executor work queue
@@ -317,6 +317,7 @@ public class BigQuerySinkTask extends SinkTask {
     for (TableWriterBuilder builder : tableWriterBuilders.values()) {
       executor.execute(builder.build());
     }
+
 
     // check if we should pause topics
     checkQueueSize();

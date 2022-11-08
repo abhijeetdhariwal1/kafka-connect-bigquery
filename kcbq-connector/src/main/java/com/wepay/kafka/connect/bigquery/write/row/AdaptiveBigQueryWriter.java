@@ -22,6 +22,7 @@ package com.wepay.kafka.connect.bigquery.write.row;
 import com.google.cloud.bigquery.*;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.Gson;
 import com.wepay.kafka.connect.bigquery.SchemaManager;
 import com.wepay.kafka.connect.bigquery.exception.BigQueryConnectException;
 
@@ -243,6 +244,17 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
       InsertAllResponse response=  bigQuery.insertAll(insertAllRequest);
       logger.info("response is ");
       logger.info(response.toString());
+
+      Gson gson = new Gson();
+      String rowsmapJson= gson.toJson(rows);
+      String rowContentJson = gson.toJson(rowContent1);
+
+      logger.info("rowsmapJson");
+      logger.info(rowsmapJson);
+      logger.info("rowContentJson");
+      logger.info(rowContentJson);
+
+
 //      writeResponse = bigQuery.insertAll(request);
       // Should only perform one schema update attempt.
 //      if (writeResponse.hasErrors()

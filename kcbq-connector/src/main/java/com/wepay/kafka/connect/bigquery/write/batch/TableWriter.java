@@ -23,6 +23,7 @@ import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.InsertAllRequest.RowToInsert;
 
 import com.google.cloud.bigquery.TableId;
+import com.google.gson.Gson;
 import com.wepay.kafka.connect.bigquery.utils.SinkRecordConverter;
 import com.wepay.kafka.connect.bigquery.exception.BigQueryConnectException;
 import com.wepay.kafka.connect.bigquery.exception.ExpectedInterruptException;
@@ -80,16 +81,36 @@ public class TableWriter implements Runnable {
     int successCount = 0;
     int failureCount = 0;
 
+    logger.info("run method");
+//    Gson gson = new Gson();
+//    String rowsJson  = gson.toJson(rows);
+
+
+
+
+//    logger.info("rowsJson");
+//    logger.info(rowsJson);
     List<Map.Entry<SinkRecord, RowToInsert>> rowsList = new ArrayList<>(rows.entrySet());
+//    String rowsListJson  = gson.toJson(rowsList);
+//    logger.info(rowsListJson);
+
     try {
       while (currentIndex < rows.size()) {
         List<Map.Entry<SinkRecord, RowToInsert>> currentBatchList =
                 rowsList.subList(currentIndex, Math.min(currentIndex + currentBatchSize, rows.size()));
+
+//        String currentBatchListJson  = gson.toJson(currentBatchList);
+//        logger.info("currentBatchListJson");
+//        logger.info(currentBatchListJson);
         try {
           SortedMap<SinkRecord, RowToInsert> currentBatch = new TreeMap<>(rows.comparator());
           for (Map.Entry<SinkRecord, RowToInsert> record: currentBatchList) {
             currentBatch.put(record.getKey(), record.getValue());
           }
+
+//          String currentBatchJson  = gson.toJson(currentBatch);
+//          logger.info("currentBatch");
+//          logger.info(currentBatchJson);
           writer.writeRows(table, currentBatch);
           currentIndex += currentBatchSize;
           successCount++;
