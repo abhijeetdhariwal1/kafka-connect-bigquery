@@ -21,6 +21,7 @@ package com.wepay.kafka.connect.bigquery.write.row;
 
 import com.google.cloud.bigquery.*;
 
+import com.google.common.collect.ImmutableList;
 import com.wepay.kafka.connect.bigquery.SchemaManager;
 import com.wepay.kafka.connect.bigquery.exception.BigQueryConnectException;
 
@@ -205,12 +206,43 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
               Schema.of(
                       Field.of("stringField", StandardSQLTypeName.STRING),
                       Field.of("booleanField", StandardSQLTypeName.BOOL));
-      TableId myTableId = TableId.of("testdataset1", "testtable6");
+      String datasetName = "testdataset1";
+      String tableName =  "testtable6";
+      TableId myTableId = TableId.of(datasetName, tableName);
       TableDefinition tableDefinition = StandardTableDefinition.of(schema);
       TableInfo tableInfo =
               TableInfo.newBuilder(myTableId, tableDefinition)
                       .build();
-      bigQuery.create(tableInfo);
+//      bigQuery.create(tableInfo);
+
+
+      Map<String, Object> rowContent1 = new HashMap<>();
+      rowContent1.put("stringField", "Phred Phlyntstone");
+      rowContent1.put("booleanField", true);
+      Map<String, Object> rowContent2 = new HashMap<>();
+      rowContent2.put("stringField", "Wylma Phlyntstone");
+      rowContent2.put("booleanField", false);
+//      final BigQuery bigqueryOptions = BigQueryOptions.getDefaultInstance().getService();
+//      InsertAllResponse response =
+//              bigquery.insertAll(
+//                      InsertAllRequest.newBuilder(TableId.of(datasetName, tableName))
+//                              .setRows(
+//                                      ImmutableList.of(
+//                                              InsertAllRequest.RowToInsert.of(rowContent1),
+//                                              InsertAllRequest.RowToInsert.of(rowContent2)))
+//                              .build());
+
+      InsertAllRequest insertAllRequest =InsertAllRequest.newBuilder(TableId.of(datasetName, tableName))
+              .setRows(
+
+                                                            ImmutableList.of(
+                                              InsertAllRequest.RowToInsert.of(rowContent1),
+                                              InsertAllRequest.RowToInsert.of(rowContent2))
+              )
+              .build();
+      InsertAllResponse response=  bigQuery.insertAll(insertAllRequest);
+      logger.info("response is ");
+      logger.info(response.toString());
 //      writeResponse = bigQuery.insertAll(request);
       // Should only perform one schema update attempt.
 //      if (writeResponse.hasErrors()
