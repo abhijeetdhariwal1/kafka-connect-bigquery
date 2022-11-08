@@ -219,8 +219,9 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
 //      logger.info("sr1json");
 //      logger.info(sr1json);
 
-      parseMySQlSinkRecords(sinkRecordList);
+      JsonArray records =parseMySQlSinkRecords(sinkRecordList);
       request = createInsertAllRequest(tableId, rows.values());
+
       Schema schema =
               Schema.of(
                       Field.of("stringField", StandardSQLTypeName.STRING),
@@ -234,103 +235,39 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
                       .build();
 //      bigQuery.create(tableInfo);
 
-
+      logger.info("***********************");
+      int col1= records.get(0).getAsInt();
+      String varchar_col= records.get(1).getAsString();
+      System.out.println();
       Map<String, Object> rowContent1 = new HashMap<>();
-      rowContent1.put("stringField", "Phred Phlyntstone");
-      rowContent1.put("booleanField", true);
-      Map<String, Object> rowContent2 = new HashMap<>();
-      rowContent2.put("stringField", "Wylma Phlyntstone");
-      rowContent2.put("booleanField", false);
-//      final BigQuery bigqueryOptions = BigQueryOptions.getDefaultInstance().getService();
-//      InsertAllResponse response =
-//              bigquery.insertAll(
-//                      InsertAllRequest.newBuilder(TableId.of(datasetName, tableName))
-//                              .setRows(
-//                                      ImmutableList.of(
-//                                              InsertAllRequest.RowToInsert.of(rowContent1),
-//                                              InsertAllRequest.RowToInsert.of(rowContent2)))
-//                              .build());
+      rowContent1.put("col1", col1);
+      rowContent1.put("varchar_col", varchar_col);
+//      Map<String, Object> rowContent2 = new HashMap<>();
+//      rowContent2.put("stringField", );
+//      rowContent2.put("booleanField", false);
+
 
       InsertAllRequest insertAllRequest =InsertAllRequest.newBuilder(TableId.of(datasetName, tableName))
               .setRows(
 
                                                             ImmutableList.of(
-                                              InsertAllRequest.RowToInsert.of(rowContent1),
-                                              InsertAllRequest.RowToInsert.of(rowContent2))
+                                              InsertAllRequest.RowToInsert.of(rowContent1)
+//                                              ,InsertAllRequest.RowToInsert.of(rowContent2)
+                                                            )
               )
               .build();
+
       InsertAllResponse response=  bigQuery.insertAll(insertAllRequest);
       logger.info("response is ");
       logger.info(response.toString());
 
 
-//      Map<String, Object> result =
-//      Gson gson = new Gson();
-//      String rowsmapJson= gson.toJson(rows);
-//      String rowContentJson = gson.toJson(rowContent1);
-//
-//      logger.info("rowsmapJson");
-//      logger.info(rowsmapJson);
-//      logger.info("rowContentJson");
-//      logger.info(rowContentJson);
-
-
-//      writeResponse = bigQuery.insertAll(request);
-      // Should only perform one schema update attempt.
-//      if (writeResponse.hasErrors()
-//              && onlyContainsInvalidSchemaErrors(writeResponse.getInsertErrors())) {
-//        attemptSchemaUpdate(tableId, new ArrayList<>(rows.keySet()));
-//      }
     } catch (BigQueryException exception) {
-      // Should only perform one table creation attempt.
-//      if (BigQueryErrorResponses.isNonExistentTableError(exception) && autoCreateTables) {
-//        attemptTableCreate(tableId.getBaseTableId(), new ArrayList<>(rows.keySet()));
-//      } else if (BigQueryErrorResponses.isTableMissingSchemaError(exception)) {
-//        attemptSchemaUpdate(tableId, new ArrayList<>(rows.keySet()));
-//      } else {
-//        throw exception;
-//      }
 
       throw exception;
     }
 
-    // Creating tables or updating table schemas in BigQuery takes up to 2~3 minutes to take affect,
-    // so multiple insertion attempts may be necessary.
-//    int attemptCount = 0;
-//    while (writeResponse == null || writeResponse.hasErrors()) {
-//      logger.trace("insertion failed");
-//      if (writeResponse == null
-//              || onlyContainsInvalidSchemaErrors(writeResponse.getInsertErrors())) {
-//        try {
-//          // If the table was missing its schema, we never received a writeResponse
-//          logger.debug("re-attempting insertion");
-//          writeResponse = bigQuery.insertAll(request);
-//        } catch (BigQueryException exception) {
-//          if ((BigQueryErrorResponses.isNonExistentTableError(exception) && autoCreateTables)
-//                  || BigQueryErrorResponses.isTableMissingSchemaError(exception)
-//          ) {
-//            // no-op, we want to keep retrying the insert
-//            logger.debug("insertion failed", exception);
-//          } else {
-//            throw exception;
-//          }
-//        }
-//      } else {
-//        return writeResponse.getInsertErrors();
-//      }
-//      attemptCount++;
-//      if (attemptCount >= RETRY_LIMIT) {
-//        throw new BigQueryConnectException(
-//                "Failed to write rows after BQ table creation or schema update within "
-//                        + RETRY_LIMIT + " attempts for: " + tableId.getBaseTableId());
-//      }
-//      try {
-//        Thread.sleep(RETRY_WAIT_TIME);
-//      } catch (InterruptedException e) {
-//        throw new ExpectedInterruptException("Interrupted while waiting to retry write");
-//      }
-//    }
-//    logger.debug("table insertion completed successfully");
+//    check orignal method before final commit
     return new HashMap<>();
   }
 
