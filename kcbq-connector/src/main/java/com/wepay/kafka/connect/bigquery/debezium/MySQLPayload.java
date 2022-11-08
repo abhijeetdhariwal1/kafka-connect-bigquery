@@ -1,7 +1,5 @@
 package com.wepay.kafka.connect.bigquery.debezium;
 
-import org.apache.kafka.common.protocol.types.Field;
-
 import java.util.List;
 
 public class MySQLPayload {
@@ -34,15 +32,6 @@ public class MySQLPayload {
 }
 
 class MySQLPayloadSchema {
-//    private List<Object> fields;
-//
-//    public List<Object> getFields() {
-//        return fields;
-//    }
-//
-//    public void setFields(List<Object> fields) {
-//        this.fields = fields;
-//    }
 
     private List<MYSQLFields> fields;
 

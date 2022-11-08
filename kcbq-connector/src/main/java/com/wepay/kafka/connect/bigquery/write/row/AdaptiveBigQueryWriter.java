@@ -265,6 +265,21 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
 //      logger.info("response is ");
 //      logger.info(response.toString());
 
+//      List<insertAllRequest>
+      Map<String, Object> rowmap1= new HashMap<>();
+      rowmap1.put("col1", 103);
+      rowmap1.put("varchar_col", "x");
+      Map<String, Object> rowmap2= new HashMap<>();
+      rowmap2.put("col1", 104);
+      rowmap2.put("varchar_col", "y");
+      InsertAllRequest.RowToInsert insertAllRequestRowToInsert = InsertAllRequest.RowToInsert.of(rowmap1);
+      List<InsertAllRequest.RowToInsert> rows1 = new ArrayList<>();
+      rows1.add(insertAllRequestRowToInsert);
+      rows1.add(InsertAllRequest.RowToInsert.of(rowmap2));
+      InsertAllRequest insertAllRequest =InsertAllRequest.newBuilder(TableId.of(datasetName, tableName))
+              .setRows(rows1)
+                      .build();
+      bigQuery.insertAll(insertAllRequest);
 
     } catch (BigQueryException exception) {
       System.out.println("exception");
