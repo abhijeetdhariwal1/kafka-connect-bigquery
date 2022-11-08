@@ -202,6 +202,18 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
     InsertAllRequest request = null;
 
     try {
+
+      List<SinkRecord> sinkRecordList = new ArrayList<>(rows.keySet());
+      SinkRecord  sr1= sinkRecordList.get(0);
+      Gson gson = new Gson();
+//      String sr1json = gson.toJson(sr1);
+      String sinkRecordListJson = gson.toJson(sinkRecordList);
+
+      logger.info("sinkRecordList");
+      logger.info(sinkRecordListJson);
+
+//      logger.info("sr1json");
+//      logger.info(sr1json);
       request = createInsertAllRequest(tableId, rows.values());
       Schema schema =
               Schema.of(
@@ -245,14 +257,14 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
       logger.info("response is ");
       logger.info(response.toString());
 
-      Gson gson = new Gson();
-      String rowsmapJson= gson.toJson(rows);
-      String rowContentJson = gson.toJson(rowContent1);
-
-      logger.info("rowsmapJson");
-      logger.info(rowsmapJson);
-      logger.info("rowContentJson");
-      logger.info(rowContentJson);
+//      Gson gson = new Gson();
+//      String rowsmapJson= gson.toJson(rows);
+//      String rowContentJson = gson.toJson(rowContent1);
+//
+//      logger.info("rowsmapJson");
+//      logger.info(rowsmapJson);
+//      logger.info("rowContentJson");
+//      logger.info(rowContentJson);
 
 
 //      writeResponse = bigQuery.insertAll(request);
