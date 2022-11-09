@@ -211,37 +211,21 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
 
       List<SinkRecord> sinkRecordList = new ArrayList<>(rows.keySet());
       Gson gson = new Gson();
-//      logger.info("sinkRecordList");
-//      logger.info("sr1json");
 
-      List< MySQLPayload> mySQLPayloadObj =parseMySQlSinkRecords(sinkRecordList);
+      List< MySQLPayload> mySQLPayloadObjList =parseMySQlSinkRecords(sinkRecordList);
+      //logger.info("mySQLPayloadObjList");
+
       request = createInsertAllRequest(tableId, rows.values());
 
-      Schema schema =
-              Schema.of(
-                      Field.of("stringField", StandardSQLTypeName.STRING),
-                      Field.of("booleanField", StandardSQLTypeName.BOOL));
-      String datasetName = "testdataset1";
-      String tableName =  "testtable7";
-      TableId myTableId = TableId.of(datasetName, tableName);
-      TableDefinition tableDefinition = StandardTableDefinition.of(schema);
-      TableInfo tableInfo =
-              TableInfo.newBuilder(myTableId, tableDefinition)
-                      .build();
 
       logger.info("printing MYSQL PAYLOAD");
-      System.out.println(mySQLPayloadObj);
+      System.out.println(mySQLPayloadObjList);
 
-      Map<String, Object> rowmap1= new HashMap<>();
-      rowmap1.put("col1", 103);
-      rowmap1.put("varchar_col", "x");
-      Map<String, Object> rowmap2= new HashMap<>();
-      rowmap2.put("col1", 104);
-      rowmap2.put("varchar_col", "y");
-      InsertAllRequest.RowToInsert insertAllRequestRowToInsert = InsertAllRequest.RowToInsert.of(rowmap1);
-      List<InsertAllRequest.RowToInsert> rows1 = new ArrayList<>();
-      rows1.add(insertAllRequestRowToInsert);
-      rows1.add(InsertAllRequest.RowToInsert.of(rowmap2));
+      List<InsertAllRequest.RowToInsert> rows1 = createInsertAllRequestMySQL(mySQLPayloadObjList);
+
+      String datasetName = "testdataset1";
+      String tableName =  "testtable7";
+
       InsertAllRequest insertAllRequest =InsertAllRequest.newBuilder(TableId.of(datasetName, tableName))
               .setRows(rows1)
                       .build();
@@ -262,8 +246,6 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
     for(SinkRecord sinkRecord : sinkRecordList){
 
       try {
-
-
         String  sinkRecordJson = gson.toJson(sinkRecord);
         logger.info("sinkRecordJson");
         JsonObject convertedObject = new Gson().fromJson(sinkRecordJson, JsonObject.class);
@@ -278,7 +260,21 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
     return mySQLPayloadObjList;
   }
 
-
+  private List<InsertAllRequest.RowToInsert> createInsertAllRequestMySQL(List<MySQLPayload> mySQLPayloadObjList) {
+    logger.info("inside createInsertAllRequestMySQL ");
+    List<Object> payloadValuesObject = mySQLPayloadObjList.get(0).getValues();
+//    each row 1 map
+    List<InsertAllRequest.RowToInsert> rows1 = new ArrayList<>();
+    for(MySQLPayload  mySQLPayloadObj: mySQLPayloadObjList){
+      logger.info("inserting");
+      Map<String, Object> rowmap1= new HashMap<>();
+      rowmap1.put("col1", 0);
+      rowmap1.put("varchar_col", "x");
+      InsertAllRequest.RowToInsert insertAllRequestRowToInsert = InsertAllRequest.RowToInsert.of(rowmap1);
+      rows1.add(insertAllRequestRowToInsert);
+    }
+    return  rows1;
+  }
 
 }
 
@@ -376,3 +372,16 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
 //      List<insertAllRequest>
 //      MySQLTableData after = (MySQLTableData) mySQLPayloadObj.getValues().get(1);
 //      int x =after.getSchema();
+
+//
+//      Schema schema =
+//              Schema.of(
+//                      Field.of("stringField", StandardSQLTypeName.STRING),
+//                      Field.of("booleanField", StandardSQLTypeName.BOOL));
+
+
+//      TableId myTableId = TableId.of(datasetName, tableName);
+//      TableDefinition tableDefinition = StandardTableDefinition.of(schema);
+//      TableInfo tableInfo =
+//              TableInfo.newBuilder(myTableId, tableDefinition)
+//                      .build();
