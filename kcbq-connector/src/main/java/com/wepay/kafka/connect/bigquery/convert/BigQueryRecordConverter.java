@@ -97,13 +97,6 @@ public class BigQueryRecordConverter implements RecordConverter<Map<String, Obje
     }
     logger.info("recordType == KafkaSchemaRecordType.KEY ? record.keySchema() : record.valueSchema()" + (recordType == KafkaSchemaRecordType.KEY ));
     logger.info("recordType == KafkaSchemaRecordType.KEY ? record.key() : record.value()");
-    logger.info("kafkaConnectSchema");
-    logger.info("kafkaConnectStruct");
-
-    String kafkaConnectSchemajson = gson.toJson(kafkaConnectSchema);
-    String kafkaConnectStructjson = gson.toJson(kafkaConnectStruct);
-    logger.info(kafkaConnectSchemajson);
-    logger.info(kafkaConnectStructjson);
     logger.info("convertRecord -> convertStruct");
     return convertStruct(kafkaConnectStruct, kafkaConnectSchema);
   }

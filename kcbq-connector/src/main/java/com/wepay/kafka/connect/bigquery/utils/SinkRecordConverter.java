@@ -138,11 +138,7 @@ public class SinkRecordConverter {
             Map<String, Object> keyData = recordConverter.convertRecord(record, KafkaSchemaRecordType.KEY);
             result.put(fieldName, keyData);
         });
-//        result.remove("source");
-        Gson gson = new Gson();
-        String jsonResult = gson.toJson(result);
         logger.info("jsonResult");
-        logger.info(jsonResult);
 
         return result;
     }

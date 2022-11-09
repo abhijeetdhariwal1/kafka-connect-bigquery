@@ -210,18 +210,11 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
     try {
 
       List<SinkRecord> sinkRecordList = new ArrayList<>(rows.keySet());
-//      SinkRecord  sr1= sinkRecordList.get(0);
       Gson gson = new Gson();
-//      String sr1json = gson.toJson(sr1);
-      String sinkRecordListJson = gson.toJson(sinkRecordList);
-
 //      logger.info("sinkRecordList");
-//      logger.info(sinkRecordListJson);
-
 //      logger.info("sr1json");
-//      logger.info(sr1json);
 
-      MySQLPayload mySQLPayloadObj =parseMySQlSinkRecords(sinkRecordList);
+      List< MySQLPayload> mySQLPayloadObj =parseMySQlSinkRecords(sinkRecordList);
       request = createInsertAllRequest(tableId, rows.values());
 
       Schema schema =
@@ -238,37 +231,6 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
 
       logger.info("printing MYSQL PAYLOAD");
       System.out.println(mySQLPayloadObj);
-//      bigQuery.create(tableInfo);
-
-//      logger.info("***********************");
-////      int col1= records.get(0).getAsInt();
-////      String varchar_col= records.get(1).getAsString();
-//      System.out.println();
-//      Map<String, Object> rowContent1 = new HashMap<>();
-//      rowContent1.put("col1", 1);
-//      rowContent1.put("varchar_col", "abc");
-////      Map<String, Object> rowContent2 = new HashMap<>();
-////      rowContent2.put("stringField", );
-////      rowContent2.put("booleanField", false);
-//
-//
-//      InsertAllRequest insertAllRequest =InsertAllRequest.newBuilder(TableId.of(datasetName, tableName))
-//              .setRows(
-//
-//                                                            ImmutableList.of(
-//                                              InsertAllRequest.RowToInsert.of(rowContent1)
-////                                              ,InsertAllRequest.RowToInsert.of(rowContent2)
-//                                                            )
-//              )
-//              .build();
-//
-//      InsertAllResponse response=  bigQuery.insertAll(insertAllRequest);
-//      logger.info("response is ");
-//      logger.info(response.toString());
-
-//      List<insertAllRequest>
-      MySQLTableData after = (MySQLTableData) mySQLPayloadObj.getValues().get(1);
-      int x =after.getSchema();
 
       Map<String, Object> rowmap1= new HashMap<>();
       rowmap1.put("col1", 103);
@@ -294,21 +256,35 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
     return new HashMap<>();
   }
 
-  private MySQLPayload parseMySQlSinkRecords(List<SinkRecord> sinkRecordList) {
+  private  List< MySQLPayload> parseMySQlSinkRecords(List<SinkRecord> sinkRecordList) {
+    List< MySQLPayload> mySQLPayloadObjList = new ArrayList<>();
+    Gson gson = new Gson();
     for(SinkRecord sinkRecord : sinkRecordList){
 
       try {
-//        Struct data = (Struct) sinkRecord.value();
-//        logger.info(data.toString());
-//        String val = String.valueOf(((Struct) data.get("after")).get("SourceInvId")).trim();
-//        val = (val.equals("null") || val.equals("")) ? "0" : val;
-        Gson gson = new Gson();
+
+
         String  sinkRecordJson = gson.toJson(sinkRecord);
-        logger.info(sinkRecordJson);
+        logger.info("sinkRecordJson");
         JsonObject convertedObject = new Gson().fromJson(sinkRecordJson, JsonObject.class);
         JsonObject valueObject = convertedObject.getAsJsonObject("value");
         MySQLPayload mySQLPayloadObj = gson.fromJson(valueObject.toString(), MySQLPayload.class);
-        return mySQLPayloadObj;
+        mySQLPayloadObjList.add(mySQLPayloadObj);
+
+      } catch (Exception e) {
+        logger.info(e.toString());
+      }
+    }
+    return mySQLPayloadObjList;
+  }
+
+
+
+}
+
+/**
+ * redundantcode - parseMySQlSinkRecords
+ */
 //        logger.info("object payload printing");
 //        logger.info("printing the schema");
 //        logger.info("printing the schema again");
@@ -365,13 +341,38 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
 //        System.out.println("__________________________________________________");
 //        return  afterValues;
 
-      } catch (Exception e) {
-        logger.info(e.toString());
-      }
-    }
-    return null;
-  }
 
+/**
+ * reudnctant code - performWriteRequest2
+ */
+//      bigQuery.create(tableInfo);
 
+//      logger.info("***********************");
+////      int col1= records.get(0).getAsInt();
+////      String varchar_col= records.get(1).getAsString();
+//      System.out.println();
+//      Map<String, Object> rowContent1 = new HashMap<>();
+//      rowContent1.put("col1", 1);
+//      rowContent1.put("varchar_col", "abc");
+////      Map<String, Object> rowContent2 = new HashMap<>();
+////      rowContent2.put("stringField", );
+////      rowContent2.put("booleanField", false);
+//
+//
+//      InsertAllRequest insertAllRequest =InsertAllRequest.newBuilder(TableId.of(datasetName, tableName))
+//              .setRows(
+//
+//                                                            ImmutableList.of(
+//                                              InsertAllRequest.RowToInsert.of(rowContent1)
+////                                              ,InsertAllRequest.RowToInsert.of(rowContent2)
+//                                                            )
+//              )
+//              .build();
+//
+//      InsertAllResponse response=  bigQuery.insertAll(insertAllRequest);
+//      logger.info("response is ");
+//      logger.info(response.toString());
 
-}
+//      List<insertAllRequest>
+//      MySQLTableData after = (MySQLTableData) mySQLPayloadObj.getValues().get(1);
+//      int x =after.getSchema();
