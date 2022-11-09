@@ -3,23 +3,31 @@ package com.wepay.kafka.connect.bigquery.debezium;
 import java.util.List;
 
 public class MySQLTableData {
-    private Object schema;
-    private MySQLTableSchema  values;
+    private MySQLTableSchema schema;
+    private Object  values;
 
-    public Object getSchema() {
+    public MySQLTableSchema getSchema() {
         return schema;
     }
 
-    public void setSchema(Object schema) {
+    public void setSchema(MySQLTableSchema schema) {
         this.schema = schema;
     }
 
-    public MySQLTableSchema getValues() {
+    public Object getValues() {
         return values;
     }
 
-    public void setValues(MySQLTableSchema values) {
+    public void setValues(Object values) {
         this.values = values;
+    }
+
+    @Override
+    public String toString() {
+        return "MySQLTableData{" +
+                "schema=" + schema +
+                ", values=" + values +
+                '}';
     }
 }
 
@@ -41,6 +49,14 @@ class MySQLTableSchema{
 
     public void setFields(List<MySQLTableFields> fields) {
         this.fields = fields;
+    }
+
+    @Override
+    public String toString() {
+        return "MySQLTableSchema{" +
+                "type='" + type + '\'' +
+                ", fields=" + fields +
+                '}';
     }
 }
 
@@ -72,6 +88,15 @@ class MySQLTableFields{
     public void setSchema(MySQLFieldSchema schema) {
         this.schema = schema;
     }
+
+    @Override
+    public String toString() {
+        return "MySQLTableFields{" +
+                "name='" + name + '\'' +
+                ", index=" + index +
+                ", schema=" + schema +
+                '}';
+    }
 }
 
 class MySQLFieldSchema{
@@ -92,5 +117,13 @@ class MySQLFieldSchema{
 
     public void setOptional(boolean optional) {
         this.optional = optional;
+    }
+
+    @Override
+    public String toString() {
+        return "MySQLFieldSchema{" +
+                "type='" + type + '\'' +
+                ", optional=" + optional +
+                '}';
     }
 }

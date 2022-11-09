@@ -29,6 +29,8 @@ import com.google.gson.JsonObject;
 import com.wepay.kafka.connect.bigquery.SchemaManager;
 import com.wepay.kafka.connect.bigquery.debezium.MySQLPayload;
 import com.wepay.kafka.connect.bigquery.debezium.MySQLTableData;
+import com.wepay.kafka.connect.bigquery.debezium2.MySQLFinalPayload;
+import com.wepay.kafka.connect.bigquery.debezium2.MySQLValues;
 import com.wepay.kafka.connect.bigquery.exception.BigQueryConnectException;
 
 import com.wepay.kafka.connect.bigquery.exception.ExpectedInterruptException;
@@ -39,11 +41,7 @@ import org.apache.kafka.connect.sink.SinkRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
+import java.util.*;
 
 /**
  * A {@link BigQueryWriter} capable of updating BigQuery table schemas and creating non-existed tables automatically.
@@ -211,23 +209,32 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
 
       List<SinkRecord> sinkRecordList = new ArrayList<>(rows.keySet());
       Gson gson = new Gson();
+      String rowsmap =gson.toJson(rows);
+//      logger.info("SortedMap<SinkRecord, InsertAllRequest.RowToInsert> rows");
+//      logger.info(rowsmap);
 
+//      getObjectList(rows);
       List< MySQLPayload> mySQLPayloadObjList =parseMySQlSinkRecords(sinkRecordList);
+//      List< MySQLPayload> mySQLPayloadObjList =
+      List<InsertAllRequest.RowToInsert> allRows =      parseMySQlSinkRecords2(sinkRecordList);
       //logger.info("mySQLPayloadObjList");
 
       request = createInsertAllRequest(tableId, rows.values());
 
 
       logger.info("printing MYSQL PAYLOAD");
-      System.out.println(mySQLPayloadObjList);
+//      System.out.println(gson.toJson(mySQLPayloadObjList));
 
       List<InsertAllRequest.RowToInsert> rows1 = createInsertAllRequestMySQL(mySQLPayloadObjList);
+//      logger.info(gson.toJson(rows1));
+
 
       String datasetName = "testdataset1";
       String tableName =  "testtable7";
 
+      logger.info("adding all rows");
       InsertAllRequest insertAllRequest =InsertAllRequest.newBuilder(TableId.of(datasetName, tableName))
-              .setRows(rows1)
+              .setRows(allRows)
                       .build();
       bigQuery.insertAll(insertAllRequest);
 
@@ -239,6 +246,8 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
 //    check orignal method before final commit
     return new HashMap<>();
   }
+
+
 
   private  List< MySQLPayload> parseMySQlSinkRecords(List<SinkRecord> sinkRecordList) {
     List< MySQLPayload> mySQLPayloadObjList = new ArrayList<>();
@@ -261,11 +270,36 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
   }
 
   private List<InsertAllRequest.RowToInsert> createInsertAllRequestMySQL(List<MySQLPayload> mySQLPayloadObjList) {
+    Gson gson = new Gson();
     logger.info("inside createInsertAllRequestMySQL ");
     List<Object> payloadValuesObject = mySQLPayloadObjList.get(0).getValues();
 //    each row 1 map
     List<InsertAllRequest.RowToInsert> rows1 = new ArrayList<>();
     for(MySQLPayload  mySQLPayloadObj: mySQLPayloadObjList){
+      List<Object> mySqlPayloadValues = mySQLPayloadObj.getValues();
+
+      logger.info("mySqlPayloadValues");
+//      logger.info(gson.toJson(mySqlPayloadValues));
+      String operationType = (String) mySqlPayloadValues.get(3);
+      logger.info("operationType");
+      logger.info(operationType);
+
+      if(!operationType.equalsIgnoreCase("d")){
+//        MySQLTableData afterObj = (MySQLTableData) mySqlPayloadValues.get(1);
+//        System.out.println("afterObj");
+//        System.out.println(afterObj);
+
+
+
+      }else{
+
+      }
+
+
+
+
+
+
       logger.info("inserting");
       Map<String, Object> rowmap1= new HashMap<>();
       rowmap1.put("col1", 0);
@@ -275,6 +309,70 @@ public class AdaptiveBigQueryWriter extends BigQueryWriter {
     }
     return  rows1;
   }
+
+//  private void getObjectList( SortedMap<SinkRecord, InsertAllRequest.RowToInsert> rows) {
+////    List<InsertAllRequest.RowToInsert> values = new ArrayList<>(rows.values());
+////    Set<SinkRecord> x =rows.keySet();
+////    logger.info();
+//    Gson gson = new Gson();
+////    logger.info(gson.toJson(values));
+////
+////    InsertAllRequest.RowToInsert x =values.get(0);
+////    Map<String, Object> y =x.getContent();
+////    Object x1 = y.get("after");
+////    System.out.println("#######");
+////    System.out.println(y);
+//    logger.info(gson.toJson(rows));
+//
+//  }
+
+
+
+  private List<InsertAllRequest.RowToInsert> parseMySQlSinkRecords2(List<SinkRecord> sinkRecordList){
+    logger.info("#################################################################### ===> START");
+    Gson gson = new Gson();
+    List<InsertAllRequest.RowToInsert> allRows = new ArrayList<>();
+
+    for(SinkRecord sinkRecord : sinkRecordList){
+      Object sinkRecordValue = sinkRecord.value();
+      String sinkRecordValueJson = gson.toJson(sinkRecordValue);
+      MySQLValues mysqlValues = gson.fromJson(sinkRecordValueJson, MySQLValues.class);
+      System.out.println(mysqlValues.values.size());
+      Object afterObject = mysqlValues.values.get(1);
+      String afterObjectJosn  = gson.toJson(afterObject);
+      JsonObject  afterJsonObject  = gson.fromJson(afterObjectJosn, JsonObject.class);
+      JsonArray afterValuesJsonArray  = afterJsonObject.getAsJsonArray("values");
+      System.out.println(afterValuesJsonArray);
+      JsonArray tableFields  = afterJsonObject.getAsJsonObject("schema").getAsJsonArray("fields");
+      System.out.println("tablefields");
+      System.out.println(tableFields);
+//      JsonArray finalJsonArray= new JsonArray();
+      List<MySQLFinalPayload> mySQLFinalPayloadList = new ArrayList<>();
+      for(int i=0;i<tableFields.size();i++){
+        JsonObject jsonObj = (JsonObject)tableFields.get(i);
+        jsonObj.add("value", afterValuesJsonArray.get(i));
+        MySQLFinalPayload mySQLFinalPayloadObj = gson.fromJson(jsonObj, MySQLFinalPayload.class);
+        mySQLFinalPayloadList.add(mySQLFinalPayloadObj);
+      }
+
+      logger.info("mySQLFinalPayloadList");
+      logger.info(gson.toJson(mySQLFinalPayloadList));
+
+      Map<String, Object> recordPayloadMap = new HashMap<>();
+      for(MySQLFinalPayload mySQLField :mySQLFinalPayloadList){
+        recordPayloadMap.put(mySQLField.name, mySQLField.value);
+      }
+
+//      recordPayloadMapList.add(recordPayloadMap);
+      InsertAllRequest.RowToInsert insertAllRequestRowToInsert = InsertAllRequest.RowToInsert.of(recordPayloadMap);
+//      logger.info(sinkRecordValueJson);
+      allRows.add(insertAllRequestRowToInsert);
+    }
+    logger.info("#################################################################### ===> END");
+
+    return allRows;
+  }
+
 
 }
 
